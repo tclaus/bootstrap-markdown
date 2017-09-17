@@ -1171,19 +1171,19 @@
               chunk = selected.text;
             }
 
-            link = prompt(e.__localize('Insert Hyperlink'), 'http://');
+            bootbox.prompt(e.__localize('Insert Hyperlink'), function(link) {
+              var urlRegex = new RegExp('^((http|https)://|(mailto:)|(//))[a-z0-9]', 'i');
+              if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
+                var sanitizedLink = $('<div>' + link + '</div>').text();
 
-            var urlRegex = new RegExp('^((http|https)://|(mailto:)|(//))[a-z0-9]', 'i');
-            if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
-              var sanitizedLink = $('<div>' + link + '</div>').text();
+                // transform selection and set the cursor into chunked text
+                e.replaceSelection('[' + chunk + '](' + sanitizedLink + ')');
+                cursor = selected.start + 1;
 
-              // transform selection and set the cursor into chunked text
-              e.replaceSelection('[' + chunk + '](' + sanitizedLink + ')');
-              cursor = selected.start + 1;
-
-              // Set the cursor
-              e.setSelection(cursor, cursor + chunk.length);
-            }
+                // Set the cursor
+                e.setSelection(cursor, cursor + chunk.length);
+              }
+            });
           }
         }, {
           name: 'cmdImage',
@@ -1208,22 +1208,22 @@
               chunk = selected.text;
             }
 
-            link = prompt(e.__localize('Insert Image Hyperlink'), 'http://');
+            bootbox.prompt(e.__localize('Insert Image Hyperlink'), function (link) {
+              var urlRegex = new RegExp('^((http|https)://|(//))[a-z0-9]', 'i');
+              if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
+                var sanitizedLink = $('<div>' + link + '</div>').text();
 
-            var urlRegex = new RegExp('^((http|https)://|(//))[a-z0-9]', 'i');
-            if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
-              var sanitizedLink = $('<div>' + link + '</div>').text();
+                // transform selection and set the cursor into chunked text
+                e.replaceSelection('![' + chunk + '](' + sanitizedLink + ' "' + e.__localize('enter image title here') + '")');
+                cursor = selected.start + 2;
 
-              // transform selection and set the cursor into chunked text
-              e.replaceSelection('![' + chunk + '](' + sanitizedLink + ' "' + e.__localize('enter image title here') + '")');
-              cursor = selected.start + 2;
+                // Set the next tab
+                e.setNextTab(e.__localize('enter image title here'));
 
-              // Set the next tab
-              e.setNextTab(e.__localize('enter image title here'));
-
-              // Set the cursor
-              e.setSelection(cursor, cursor + chunk.length);
-            }
+                // Set the cursor
+                e.setSelection(cursor, cursor + chunk.length);
+              }
+            });
           }
         }]
       }, {
