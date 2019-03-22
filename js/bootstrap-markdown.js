@@ -137,8 +137,7 @@
             if (button.toggle === true) {
               buttonContainer.attr('data-toggle', 'button');
             }
-            buttonIconContainer = $('<span/>');
-            buttonIconContainer.addClass(buttonIcon);
+            buttonIconContainer = $('<svg><use xlink:href="#'+buttonIcon+'" href="#'+buttonIcon+'" /></svg>');
             buttonIconContainer.prependTo(buttonContainer);
 
             // Attach the button object
