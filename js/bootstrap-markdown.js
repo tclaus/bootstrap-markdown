@@ -1179,7 +1179,7 @@
               chunk = selected.text;
             }
 
-            link = prompt(e.__localize('Insert Hyperlink'), 'http://');
+            link = prompt(e.__localize('Insert Hyperlink'), 'https://');
 
             var urlRegex = new RegExp('^((http|https)://|(mailto:)|(//))[a-z0-9]', 'i');
             if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
