@@ -137,8 +137,7 @@
             if (button.toggle === true) {
               buttonContainer.attr('data-toggle', 'button');
             }
-            buttonIconContainer = $('<span/>');
-            buttonIconContainer.addClass(buttonIcon);
+            buttonIconContainer = $('<svg><use xlink:href="#'+buttonIcon+'" href="#'+buttonIcon+'" /></svg>');
             buttonIconContainer.prependTo(buttonContainer);
 
             // Attach the button object
@@ -200,7 +199,7 @@
       callbackHandler(this);
 
       // Trigger onChange for each button handle
-      this.change(this);
+      this.$textarea.change();
 
       // Unless it was the save handler,
       // focusin the textarea
@@ -880,7 +879,17 @@
 
           var charFollowingLastLineBreak = chars[priorNewlineIndex + 1];
           if (charFollowingLastLineBreak === '-') {
-            this.addBullet(enterIndex);
+            var line = chars.slice(priorNewlineIndex + 2, enterIndex).join('');
+            var allWhitespace = /^[\W]*$/.test(line);
+            if (allWhitespace) {
+              // If we hit enter on a empty line, we probably want to close the bullet list
+              var linesDeleted = line.length + 2;
+              this.setSelection(priorNewlineIndex, enterIndex);
+              this.replaceSelection("\n\n");
+              this.setSelection(enterIndex + 2 - linesDeleted, enterIndex + 2 - linesDeleted); // Put the cursor into new line
+            } else {
+              this.addBullet(enterIndex);
+            }
           } else if ($.isNumeric(charFollowingLastLineBreak)) {
               var numBullet = this.getBulletNumber(priorNewlineIndex + 1);
               if (numBullet) {
@@ -1179,18 +1188,36 @@
               chunk = selected.text;
             }
 
-            link = prompt(e.__localize('Insert Hyperlink'), 'http://');
-
             var urlRegex = new RegExp('^((http|https)://|(mailto:)|(//))[a-z0-9]', 'i');
-            if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
-              var sanitizedLink = $('<div>' + link + '</div>').text();
+            var buildLink = function(e, cursor, link, chunk) {
+              if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
+                var sanitizedLink = $('<div>' + link + '</div>').text();
 
-              // transform selection and set the cursor into chunked text
-              e.replaceSelection('[' + chunk + '](' + sanitizedLink + ')');
-              cursor = selected.start + 1;
+                // transform selection and set the cursor into chunked text
+                e.replaceSelection('[' + chunk + '](' + sanitizedLink + ')');
+                cursor = selected.start + 1;
 
-              // Set the cursor
-              e.setSelection(cursor, cursor + chunk.length);
+                // Set the cursor
+                e.setSelection(cursor, cursor + chunk.length);
+              }
+            };
+
+            var title = e.__localize('Insert Hyperlink');
+            var value = 'http://';
+
+            if(typeof bootbox === 'undefined') {
+              link = prompt(title, value);
+              buildLink(e, cursor, link, chunk)
+            } else {
+              bootbox.prompt({
+                title: title,
+                value: value,
+                callback: function(result) {
+                  if (result) {
+                    buildLink(e, cursor, result, chunk)
+                  }
+                }
+              });
             }
           }
         }, {
@@ -1217,21 +1244,39 @@
               chunk = selected.text;
             }
 
-            link = prompt(e.__localize('Insert Image Hyperlink'), 'http://');
-
             var urlRegex = new RegExp('^((http|https)://|(//))[a-z0-9]', 'i');
-            if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
-              var sanitizedLink = $('<div>' + link + '</div>').text();
+            var buildLink = function(e, cursor, link, chunk) {
+              if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
+                var sanitizedLink = $('<div>' + link + '</div>').text();
 
-              // transform selection and set the cursor into chunked text
-              e.replaceSelection('![' + chunk + '](' + sanitizedLink + ' "' + e.__localize('enter image title here') + '")');
-              cursor = selected.start + 2;
+                // transform selection and set the cursor into chunked text
+                e.replaceSelection('![' + chunk + '](' + sanitizedLink + ' "' + e.__localize('enter image title here') + '")');
+                cursor = selected.start + 2;
 
-              // Set the next tab
-              e.setNextTab(e.__localize('enter image title here'));
+                // Set the next tab
+                e.setNextTab(e.__localize('enter image title here'));
 
-              // Set the cursor
-              e.setSelection(cursor, cursor + chunk.length);
+                // Set the cursor
+                e.setSelection(cursor, cursor + chunk.length);
+              }
+            };
+
+            var title = e.__localize('Insert Image Hyperlink');
+            var value = 'http://';
+
+            if(typeof bootbox === 'undefined') {
+              link = prompt(title, value);
+              buildLink(e, cursor, link, chunk);
+            } else {
+              bootbox.prompt({
+                title: title,
+                value: value,
+                callback: function(result) {
+                  if (result) {
+                    buildLink(e, cursor, result, chunk)
+                  }
+                }
+              });
             }
           }
         }]
